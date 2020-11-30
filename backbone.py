@@ -325,7 +325,7 @@ class ConvNetSNopool(nn.Module): #Relation net use a 4 layer conv with pooling i
 
 class ResNet(nn.Module):
     maml = False #Default
-    def __init__(self,block,list_of_num_layers, list_of_out_dims, flatten = True):
+    def __init__(self,block,list_of_num_layers, list_of_out_dims, flatten = True, n_views=None):
         # list_of_num_layers specifies number of layers in each stage
         # list_of_out_dims specifies number of output channel for each stage
         super(ResNet,self).__init__()
@@ -367,9 +367,15 @@ class ResNet(nn.Module):
 
         self.trunk = nn.Sequential(*trunk)
 
+        self.n_views = n_views
+
     def forward(self,x):
         out = self.trunk(x)
-        return out
+        if self.n_views:
+            out = out.view((int(x.shape[0]/self.n_views),self.n_views,y.shape[-1]))#(-1,num_views,512)
+            return torch.max(y,1)[0].view(y.shape[0],-1)
+        else:
+            return out
 
 def Conv4():
     return ConvNet(4)
@@ -392,8 +398,8 @@ def Conv4SNP():
 def ResNet10( flatten = True):
     return ResNet(SimpleBlock, [1,1,1,1],[64,128,256,512], flatten)
 
-def ResNet18( flatten = True):
-    return ResNet(SimpleBlock, [2,2,2,2],[64,128,256,512], flatten)
+def ResNet18(flatten = True, n_views=None):
+    return ResNet(SimpleBlock, [2,2,2,2],[64,128,256,512], flatten, n_views)
 
 def ResNet34( flatten = True):
     return ResNet(SimpleBlock, [3,4,6,3],[64,128,256,512], flatten)
