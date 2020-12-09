@@ -14,8 +14,8 @@ from data.datamgr import SimpleDataManager, SetDataManager
 from methods.baselinetrain import BaselineTrain
 from methods.baselinefinetune import BaselineFinetune
 from methods.protonet import ProtoNet
-from methods.matchingnet import MatchingNet
-from methods.relationnet import RelationNet
+# from methods.matchingnet import MatchingNet
+# from methods.relationnet import RelationNet
 from methods.maml import MAML
 from io_utils import model_dict, parse_args, get_resume_file
 
@@ -124,43 +124,43 @@ if __name__ == '__main__':
         train_few_shot_params = dict(
             n_way=params.train_n_way, n_support=params.n_shot)
         base_datamgr = SetDataManager(
-            image_size, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **train_few_shot_params)
+            image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **train_few_shot_params)
         base_loader = base_datamgr.get_data_loader(
             base_file, aug=params.train_aug)
 
         test_few_shot_params = dict(
             n_way=params.test_n_way, n_support=params.n_shot)
         val_datamgr = SetDataManager(
-            image_size, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **test_few_shot_params)
+            image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **test_few_shot_params)
         val_loader = val_datamgr.get_data_loader(val_file, aug=False)
         # a batch for SetDataManager: a [n_way, n_support + n_query, dim, w, h] tensor
 
         if params.method == 'protonet':
             model = ProtoNet(model_dict[params.model],
-                             params.num_views, params.num_points, **train_few_shot_params)
-        elif params.method == 'matchingnet':
-            model = MatchingNet(
-                model_dict[params.model], **train_few_shot_params)
-        elif params.method in ['relationnet', 'relationnet_softmax']:
-            if params.model == 'Conv4':
-                feature_model = backbone.Conv4NP
-            elif params.model == 'Conv6':
-                feature_model = backbone.Conv6NP
-            elif params.model == 'Conv4S':
-                feature_model = backbone.Conv4SNP
-            else:
-                def feature_model(): return model_dict[params.model](
-                    flatten=False)
-            loss_type = 'mse' if params.method == 'relationnet' else 'softmax'
+                             params.voxelized, params.num_views, params.num_points, **train_few_shot_params)
+        # elif params.method == 'matchingnet':
+        #     model = MatchingNet(
+        #         model_dict[params.model], **train_few_shot_params)
+        # elif params.method in ['relationnet', 'relationnet_softmax']:
+        #     if params.model == 'Conv4':
+        #         feature_model = backbone.Conv4NP
+        #     elif params.model == 'Conv6':
+        #         feature_model = backbone.Conv6NP
+        #     elif params.model == 'Conv4S':
+        #         feature_model = backbone.Conv4SNP
+        #     else:
+        #         def feature_model(): return model_dict[params.model](
+        #             flatten=False)
+        #     loss_type = 'mse' if params.method == 'relationnet' else 'softmax'
 
-            model = RelationNet(
-                feature_model, loss_type=loss_type, **train_few_shot_params)
+        #     model = RelationNet(
+        #         feature_model, loss_type=loss_type, **train_few_shot_params)
         elif params.method in ['maml', 'maml_approx']:
             backbone.ConvBlock.maml = True
             backbone.SimpleBlock.maml = True
             backbone.BottleneckBlock.maml = True
             backbone.ResNet.maml = True
-            model = MAML(model_dict[params.model], approx=(
+            model = MAML(model_dict[params.model], params.voxelized, params.num_views, params.num_points, approx=(
                 params.method == 'maml_approx'), **train_few_shot_params)
             # maml use different parameter in omniglot
             if params.dataset in ['omniglot', 'cross_char']:

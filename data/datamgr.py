@@ -71,7 +71,7 @@ class SimpleDataManager(DataManager):
 
 
 class SetDataManager(DataManager):
-    def __init__(self, image_size, n_views, n_points, n_way, n_support, n_query, n_eposide=100):
+    def __init__(self, image_size, vox, n_views, n_points, n_way, n_support, n_query, n_eposide=100):
         super(SetDataManager, self).__init__()
         self.image_size = image_size
         self.n_way = n_way
@@ -79,6 +79,7 @@ class SetDataManager(DataManager):
         self.n_eposide = n_eposide
         self.n_views = n_views
         self.n_points = n_points
+        self.vox = vox
 
         self.trans_loader = TransformLoader(image_size)
 
@@ -86,7 +87,7 @@ class SetDataManager(DataManager):
     def get_data_loader(self, data_file, aug):
         transform = self.trans_loader.get_composed_transform(aug)
         dataset = SetDataset(data_file, self.batch_size,
-                             transform, self.n_views, self.n_points)
+                             transform, self.vox, self.n_views, self.n_points)
         sampler = EpisodicBatchSampler(
             len(dataset), self.n_way, self.n_eposide)
         data_loader_params = dict(

@@ -7,22 +7,26 @@ import torch.nn.functional as F
 import utils
 from abc import abstractmethod
 
-from .pointnet import PointNetEncoder
+from pointnet import PointNetEncoder
+from voxnet import VoxNet
 # import provider
 from IPython import embed
 
 
 class MetaTemplate(nn.Module):
-    def __init__(self, model_func, n_views, n_points, n_way, n_support, change_way=True):
+    def __init__(self, model_func, vox, n_views, n_points, n_way, n_support, change_way=True):
         super(MetaTemplate, self).__init__()
         self.n_way = n_way
         self.n_support = n_support
         self.n_query = -1  # (change depends on input)
         self.n_views = n_views
         self.n_points = n_points
+        self.vox = vox
         if self.n_points:
             self.feature = PointNetEncoder(
                 global_feat=True, feature_transform=True, channel=6)
+        elif self.vox:
+            self.feature = VoxNet()
         else:
             self.feature = model_func(self.n_views)
         self.feat_dim = self.feature.final_feat_dim
@@ -77,6 +81,8 @@ class MetaTemplate(nn.Module):
         avg_loss = 0
         for i, (x, _) in enumerate(train_loader):
             # embed()
+            if self.vox:
+                x = x.float()
             self.n_query = x.size(1) - self.n_support
             if self.change_way:
                 self.n_way = x.size(0)
@@ -100,6 +106,8 @@ class MetaTemplate(nn.Module):
 
         iter_num = len(test_loader)
         for i, (x, _) in enumerate(test_loader):
+            if self.vox:
+                x = x.float()
             self.n_query = x.size(1) - self.n_support
             if self.change_way:
                 self.n_way = x.size(0)

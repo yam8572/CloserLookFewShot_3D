@@ -42,6 +42,8 @@ def parse_args(script):
                         type=int, help='number of views')
     parser.add_argument('--num_points', default=None,
                         type=int, help='number of points')
+    parser.add_argument('--voxelized', action='store_true',
+                        help='voxelized or not')
 
     if script == 'train':
         # make it larger than the maximum label value in base class
