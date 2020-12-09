@@ -31,9 +31,9 @@ In general, run
 ```python ./train.py --dataset [DATASETNAME] --model [BACKBONENAME] --method [METHODNAME] [--OPTIONARG]```
 
 Specifically, below are some examples to run experiments on ModelNet40 dataset using different architectures and few-shot techniques:
-* VoxNet: `python ./train.py --dataset modelnet_voxels --method protonet --voxelized`
-* MVCNN: `python ./train.py --dataset modelnet_views --model Conv4 --method maml --num_views 12`
-* PointNet: `python ./train.py --dataset modelnet_points --method baseline --num_points 1024`
+* VoxNet: `python ./train.py --dataset modelnet40_voxels --method protonet --voxelized`
+* MVCNN: `python ./train.py --dataset modelnet40_views --model Conv4 --method maml --num_views 12`
+* PointNet: `python ./train.py --dataset modelnet40_points --method baseline --num_points 1024`
 Similarly, you can use other 3D datasets. Commands below follow this example, and please refer to io_utils.py for additional options.
 
 ## Save features
