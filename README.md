@@ -53,18 +53,8 @@ We have modified and built upon the following publicly available code:
 * Few-shot Framework and Methods: 
 https://github.com/wyharveychen/CloserLookFewShot 
 * VoxNet: 
-https://github.com/dimatura/voxnet
-
-https://github.com/MonteYang/VoxNet.pytorch
-
-https://github.com/Ryanglambert/3d_model_retriever
+https://github.com/dimatura/voxnet; https://github.com/MonteYang/VoxNet.pytorch; https://github.com/Ryanglambert/3d_model_retriever
 * MVCNN: 
-https://github.com/jongchyisu/mvcnn_pytorch
-
-https://github.com/RBirkeland/MVCNN-PyTorch
+https://github.com/jongchyisu/mvcnn_pytorch; https://github.com/RBirkeland/MVCNN-PyTorch
 * PointNet: 
-https://github.com/charlesq34/pointnet
-
-https://github.com/fxia22/pointnet.pytorch
-
-https://github.com/yanx27/Pointnet_Pointnet2_pytorch
+https://github.com/charlesq34/pointnet; https://github.com/fxia22/pointnet.pytorch; https://github.com/yanx27/Pointnet_Pointnet2_pytorch
