@@ -1,6 +1,5 @@
 # Few-shot Learning for 3D Shape Classification
-
-This repo has been adapted from the reference source code for the paper [A Closer Look at Few-shot Classification](https://arxiv.org/abs/1904.04232). In this project, we integrated common 3d architectures and datasets for a detailed empirical study of 3d shape classification under few-shot setting.
+In this project, we perform a detailed empirical study of 3d shape classification under few-shot setting using common 3D architectures, datasets and few-shot techniques.
 
 ## Enviroment
  - Python3
