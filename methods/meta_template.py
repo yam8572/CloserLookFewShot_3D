@@ -28,7 +28,7 @@ class MetaTemplate(nn.Module):
         elif self.vox:
             self.feature = VoxNet()
         else:
-            self.feature = model_func(self.n_views)
+            self.feature = model_func(n_views=self.n_views)
         self.feat_dim = self.feature.final_feat_dim
         # some methods allow different_way classification during training and test
         self.change_way = change_way
@@ -60,6 +60,7 @@ class MetaTemplate(nn.Module):
                     x = x.transpose(2, 1)
 
             z_all = self.feature.forward(x)
+            # embed()
             z_all = z_all.view(self.n_way, self.n_support + self.n_query, -1)
         z_support = z_all[:, :self.n_support]
         z_query = z_all[:, self.n_support:]

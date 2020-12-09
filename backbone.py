@@ -8,6 +8,8 @@ import numpy as np
 import torch.nn.functional as F
 from torch.nn.utils.weight_norm import WeightNorm
 
+from IPython import embed
+
 # Basic ResNet model
 
 def init_layer(L):
@@ -248,7 +250,7 @@ class BottleneckBlock(nn.Module):
 
 
 class ConvNet(nn.Module):
-    def __init__(self, depth, flatten = True):
+    def __init__(self, depth, flatten = True, n_views=None):
         super(ConvNet,self).__init__()
         trunk = []
         for i in range(depth):
@@ -262,10 +264,15 @@ class ConvNet(nn.Module):
 
         self.trunk = nn.Sequential(*trunk)
         self.final_feat_dim = 1600
+        self.n_views = n_views
 
     def forward(self,x):
         out = self.trunk(x)
-        return out
+        if self.n_views:
+            y = out.view((int(x.shape[0]/self.n_views),self.n_views,out.shape[-1]))#(-1,num_views,512)
+            return torch.max(y,1)[0].view(y.shape[0],-1)
+        else:
+            return out
 
 class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in only first two layers, else no pooling
     def __init__(self, depth):
@@ -329,6 +336,9 @@ class ResNet(nn.Module):
         # list_of_num_layers specifies number of layers in each stage
         # list_of_out_dims specifies number of output channel for each stage
         super(ResNet,self).__init__()
+
+        self.n_views = n_views
+
         assert len(list_of_num_layers)==4, 'Can have only four stages'
         if self.maml:
             conv1 = Conv2d_fw(3, 64, kernel_size=7, stride=2, padding=3,
@@ -367,18 +377,16 @@ class ResNet(nn.Module):
 
         self.trunk = nn.Sequential(*trunk)
 
-        self.n_views = n_views
-
     def forward(self,x):
         out = self.trunk(x)
         if self.n_views:
-            out = out.view((int(x.shape[0]/self.n_views),self.n_views,y.shape[-1]))#(-1,num_views,512)
+            y = out.view((int(x.shape[0]/self.n_views),self.n_views,out.shape[-1]))#(-1,num_views,512)
             return torch.max(y,1)[0].view(y.shape[0],-1)
         else:
             return out
 
-def Conv4():
-    return ConvNet(4)
+def Conv4(n_views=None):
+    return ConvNet(4, n_views=n_views)
 
 def Conv6():
     return ConvNet(6)
