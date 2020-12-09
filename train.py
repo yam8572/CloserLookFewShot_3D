@@ -10,6 +10,8 @@ import glob
 
 import configs
 import backbone
+import pointnet
+import voxnet
 from data.datamgr import SimpleDataManager, SetDataManager
 from methods.baselinetrain import BaselineTrain
 from methods.baselinefinetune import BaselineFinetune
@@ -120,6 +122,7 @@ if __name__ == '__main__':
     elif params.method in ['protonet', 'matchingnet', 'relationnet', 'relationnet_softmax', 'maml', 'maml_approx']:
         # if test_n_way is smaller than train_n_way, reduce n_query to keep batch size small
         n_query = max(1, int(16 * params.test_n_way / params.train_n_way))
+        # n_query = 8
 
         train_few_shot_params = dict(
             n_way=params.train_n_way, n_support=params.n_shot)
@@ -160,6 +163,10 @@ if __name__ == '__main__':
             backbone.SimpleBlock.maml = True
             backbone.BottleneckBlock.maml = True
             backbone.ResNet.maml = True
+            pointnet.STN3d.maml = True
+            pointnet.STNkd.maml = True
+            pointnet.PointNetEncoder.maml = True
+            voxnet.VoxNet.maml = True
             model = MAML(model_dict[params.model], params.voxelized, params.num_views, params.num_points, approx=(
                 params.method == 'maml_approx'), **train_few_shot_params)
             # maml use different parameter in omniglot
