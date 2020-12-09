@@ -24,7 +24,7 @@ In this project, we perform a detailed empirical study of 3d shape classificatio
 * Require three data split json file: 'base.json', 'val.json', 'novel.json' for each dataset  
 * The format should follow   
 {"label_names": ["class0","class1",...], "image_names": ["filepath1","filepath2",...],"image_labels":[l1,l2,l3,...]}  
-* Use utils/create_json.ipynb to generate these files for ModelNet40 dataset. Update data_dir['DATASETNAME'] in configs.py.  
+* See utils/create_json.ipynb on how to generate these files for ModelNet40 dataset. Update data_dir['DATASETNAME'] in configs.py.  
 
 ## Train
 In general, run
