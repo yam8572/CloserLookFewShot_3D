@@ -58,15 +58,15 @@ if __name__ == '__main__':
     np.random.seed(10)
     params = parse_args('train')
 
-    if params.dataset == 'cross':
-        base_file = configs.data_dir['miniImagenet'] + 'all.json'
-        val_file = configs.data_dir['CUB'] + 'val.json'
-    elif params.dataset == 'cross_char':
-        base_file = configs.data_dir['omniglot'] + 'noLatin.json'
-        val_file = configs.data_dir['emnist'] + 'val.json'
-    else:
-        base_file = configs.data_dir[params.dataset] + 'base.json'
-        val_file = configs.data_dir[params.dataset] + 'val.json'
+    # if params.dataset == 'cross':
+    #     base_file = configs.data_dir['miniImagenet'] + 'all.json'
+    #     val_file = configs.data_dir['CUB'] + 'val.json'
+    # elif params.dataset == 'cross_char':
+    #     base_file = configs.data_dir['omniglot'] + 'noLatin.json'
+    #     val_file = configs.data_dir['emnist'] + 'val.json'
+    # else:
+    base_file = configs.data_dir[params.dataset] + 'base.json'
+    val_file = configs.data_dir[params.dataset] + 'val.json'
 
     if 'Conv' in params.model:
         if params.dataset in ['omniglot', 'cross_char']:
@@ -76,9 +76,9 @@ if __name__ == '__main__':
     else:
         image_size = 224
 
-    if params.dataset in ['omniglot', 'cross_char']:
-        assert params.model == 'Conv4' and not params.train_aug, 'omniglot only support Conv4 without augmentation'
-        params.model = 'Conv4S'
+    # if params.dataset in ['omniglot', 'cross_char']:
+    #     assert params.model == 'Conv4' and not params.train_aug, 'omniglot only support Conv4 without augmentation'
+    #     params.model = 'Conv4S'
 
     optimization = 'Adam'
 
@@ -89,10 +89,11 @@ if __name__ == '__main__':
             elif params.dataset in ['CUB']:
                 # This is different as stated in the open-review paper. However, using 400 epoch in baseline actually lead to over-fitting
                 params.stop_epoch = 200
-            elif params.dataset in ['miniImagenet', 'cross']:
-                params.stop_epoch = 400
+            # elif params.dataset in ['miniImagenet', 'cross']:
+            #     params.stop_epoch = 400
             else:
-                params.stop_epoch = 400  # default
+                # params.stop_epoch = 400  # default
+                params.stop_epoch = 10
         else:  # meta-learning methods
             if params.n_shot == 1:
                 params.stop_epoch = 600
@@ -102,19 +103,22 @@ if __name__ == '__main__':
                 params.stop_epoch = 600  # default
 
     if params.method in ['baseline', 'baseline++']:
-        base_datamgr = SimpleDataManager(image_size, batch_size=16)
+        base_datamgr = SimpleDataManager(
+            image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, batch_size=16)
         base_loader = base_datamgr.get_data_loader(
             base_file, aug=params.train_aug)
-        val_datamgr = SimpleDataManager(image_size, batch_size=64)
+        val_datamgr = SimpleDataManager(
+            image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, batch_size=64)
         val_loader = val_datamgr.get_data_loader(val_file, aug=False)
 
-        if params.dataset == 'omniglot':
-            assert params.num_classes >= 4112, 'class number need to be larger than max label id in base class'
-        if params.dataset == 'cross_char':
-            assert params.num_classes >= 1597, 'class number need to be larger than max label id in base class'
+        # if params.dataset == 'omniglot':
+        #     assert params.num_classes >= 4112, 'class number need to be larger than max label id in base class'
+        # if params.dataset == 'cross_char':
+        #     assert params.num_classes >= 1597, 'class number need to be larger than max label id in base class'
 
         if params.method == 'baseline':
-            model = BaselineTrain(model_dict[params.model], params.num_classes)
+            model = BaselineTrain(model_dict[params.model], params.voxelized,
+                                  params.num_views, params.num_points, params.num_classes)
         elif params.method == 'baseline++':
             model = BaselineTrain(
                 model_dict[params.model], params.num_classes, loss_type='dist')
@@ -170,10 +174,10 @@ if __name__ == '__main__':
             model = MAML(model_dict[params.model], params.voxelized, params.num_views, params.num_points, approx=(
                 params.method == 'maml_approx'), **train_few_shot_params)
             # maml use different parameter in omniglot
-            if params.dataset in ['omniglot', 'cross_char']:
-                model.n_task = 32
-                model.task_update_num = 1
-                model.train_lr = 0.1
+            # if params.dataset in ['omniglot', 'cross_char']:
+            #     model.n_task = 32
+            #     model.task_update_num = 1
+            #     model.train_lr = 0.1
     else:
         raise ValueError('Unknown method')
 

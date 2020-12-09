@@ -53,15 +53,19 @@ class DataManager:
 
 
 class SimpleDataManager(DataManager):
-    def __init__(self, image_size, batch_size):
+    def __init__(self, image_size, vox, n_views, n_points, batch_size):
         super(SimpleDataManager, self).__init__()
         self.batch_size = batch_size
         self.trans_loader = TransformLoader(image_size)
+        self.n_views = n_views
+        self.n_points = n_points
+        self.vox = vox
 
     # parameters that would change on train/val set
     def get_data_loader(self, data_file, aug):
         transform = self.trans_loader.get_composed_transform(aug)
-        dataset = SimpleDataset(data_file, transform)
+        dataset = SimpleDataset(data_file, transform,
+                                self.vox, self.n_views, self.n_points)
         data_loader_params = dict(
             batch_size=self.batch_size, shuffle=True, num_workers=12, pin_memory=True)
         data_loader = torch.utils.data.DataLoader(

@@ -16,21 +16,73 @@ def identity(x): return x
 
 
 class SimpleDataset:
-    def __init__(self, data_file, transform, target_transform=identity):
+    def __init__(self, data_file, transform, vox, n_views, n_points, target_transform=identity):
         with open(data_file, 'r') as f:
             self.meta = json.load(f)
         self.transform = transform
         self.target_transform = target_transform
+        self.n_views = n_views
+        self.n_points = n_points
+        self.vox = vox
+
+        if self.n_views:
+            stride = int(12 / self.n_views)
+            self.meta['image_names'] = self.meta['image_names'][::stride]
+            self.meta['image_labels'] = self.meta['image_labels'][::stride]
+
+            # shuffle
+            rand_idx = np.random.permutation(
+                int(len(self.meta['image_names']) / self.n_views))
+            meta_new = []
+            for i in range(len(rand_idx)):
+                meta_new.extend(
+                    self.meta['image_names'][rand_idx[i] * self.n_views:(rand_idx[i] + 1) * self.n_views])
+            self.meta['image_names'] = meta_new
 
     def __getitem__(self, i):
-        image_path = os.path.join(self.meta['image_names'][i])
-        img = Image.open(image_path).convert('RGB')
-        img = self.transform(img)
-        target = self.target_transform(self.meta['image_labels'][i])
-        return img, target
+        # image_path = os.path.join(self.meta['image_names'][i])
+        # img = Image.open(image_path).convert('RGB')
+        # img = self.transform(img)
+        # target = self.target_transform(self.meta['image_labels'][i])
+        # return img, target
+
+        if self.n_views:
+            target = self.target_transform(
+                self.meta['image_labels'][i * self.n_views])
+            imgs = []
+            for j in range(self.n_views):
+                image_path = os.path.join(self.meta['image_names'][i * self.n_views + j])
+                img = Image.open(image_path).convert('RGB')
+                img = self.transform(img)
+                imgs.append(img)
+            return torch.stack(imgs), target
+        elif self.n_points:
+            target = self.target_transform(self.meta['image_labels'][i])
+            image_path = os.path.join(self.meta['image_names'][i])
+            point_set = np.loadtxt(
+                image_path, delimiter=',').astype(np.float32)
+            point_set = point_set[0:self.n_points, :]
+            point_set[:, 0:3] = pc_normalize(point_set[:, 0:3])
+            return point_set, target
+        elif self.vox:
+            target = self.target_transform(self.meta['image_labels'][i])
+            image_path = os.path.join(self.meta['image_names'][i])
+            with open(image_path, 'rb') as file:
+                data = np.int32(binvox_rw.read_as_3d_array(file).data)
+                data = data[np.newaxis, :]
+            return data, target
+        else:
+            target = self.target_transform(self.meta['image_labels'][i])
+            image_path = os.path.join(self.meta['image_names'][i])
+            img = Image.open(image_path).convert('RGB')
+            img = self.transform(img)
+            return img, target
 
     def __len__(self):
-        return len(self.meta['image_names'])
+        if self.n_views:
+            return int(len(self.meta['image_names']) / self.n_views)
+        else:
+            return len(self.meta['image_names'])
 
 
 class SetDataset:
