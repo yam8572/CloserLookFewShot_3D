@@ -34,19 +34,7 @@ Specifically, below are some examples to run experiments on ModelNet40 dataset u
 * VoxNet: `python ./train.py --dataset modelnet40_voxels --method protonet --voxelized`
 * MVCNN: `python ./train.py --dataset modelnet40_views --model Conv4 --method maml --num_views 12`
 * PointNet: `python ./train.py --dataset modelnet40_points --method baseline --num_points 1024`
-Similarly, you can use other 3D datasets. Commands below follow this example, and please refer to io_utils.py for additional options.
-
-## Save features
-Save the extracted feature before the classifaction layer to increase test speed. This is not applicable to MAML, but are required for other methods.
-Run
-```python ./save_features.py --dataset modelnet_views --model Conv4 --method protonet --train_aug```
-
-## Test
-Run
-```python ./test.py --dataset modelnet_views --model Conv4 --method protonet --train_aug```
-
-## Results
-* The test results will be recorded in `./record/results.txt`
+Similarly, you can use other 3D datasets. Please refer to io_utils.py for additional options.
 
 ## References
 We have modified and built upon the following publicly available code:
