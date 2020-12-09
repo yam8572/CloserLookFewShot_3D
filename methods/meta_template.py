@@ -7,17 +7,24 @@ import torch.nn.functional as F
 import utils
 from abc import abstractmethod
 
+from .pointnet import PointNetEncoder
+# import provider
 from IPython import embed
 
 
 class MetaTemplate(nn.Module):
-    def __init__(self, model_func, n_views, n_way, n_support, change_way=True):
+    def __init__(self, model_func, n_views, n_points, n_way, n_support, change_way=True):
         super(MetaTemplate, self).__init__()
         self.n_way = n_way
         self.n_support = n_support
         self.n_query = -1  # (change depends on input)
         self.n_views = n_views
-        self.feature = model_func(self.n_views)
+        self.n_points = n_points
+        if self.n_points:
+            self.feature = PointNetEncoder(
+                global_feat=True, feature_transform=True, channel=6)
+        else:
+            self.feature = model_func(self.n_views)
         self.feat_dim = self.feature.final_feat_dim
         # some methods allow different_way classification during training and test
         self.change_way = change_way
@@ -45,6 +52,9 @@ class MetaTemplate(nn.Module):
             else:
                 x = x.contiguous().view(
                     self.n_way * (self.n_support + self.n_query), *x.size()[2:])
+                if self.n_points:
+                    x = x.transpose(2, 1)
+
             z_all = self.feature.forward(x)
             z_all = z_all.view(self.n_way, self.n_support + self.n_query, -1)
         z_support = z_all[:, :self.n_support]
@@ -66,6 +76,7 @@ class MetaTemplate(nn.Module):
 
         avg_loss = 0
         for i, (x, _) in enumerate(train_loader):
+            # embed()
             self.n_query = x.size(1) - self.n_support
             if self.change_way:
                 self.n_way = x.size(0)

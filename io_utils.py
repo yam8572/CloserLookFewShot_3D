@@ -40,6 +40,8 @@ def parse_args(script):
                         help='perform data augmentation or not during training ')
     parser.add_argument('--num_views', default=None,
                         type=int, help='number of views')
+    parser.add_argument('--num_points', default=None,
+                        type=int, help='number of points')
 
     if script == 'train':
         # make it larger than the maximum label value in base class
