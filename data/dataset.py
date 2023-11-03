@@ -161,6 +161,7 @@ class SubDataset:
             return torch.stack(imgs), target
         elif self.n_points:
             image_path = os.path.join(self.sub_meta[i])
+            print("image_path",image_path)
             point_set = np.loadtxt(
                 image_path, delimiter=',').astype(np.float32)
             point_set = point_set[0:self.n_points, :]

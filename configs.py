@@ -1,4 +1,6 @@
-save_dir                    = '/home/rishabhgupta/CloserLookFewShot/'
+# save_dir                    = '/home/rishabhgupta/CloserLookFewShot/'
+save_dir                    = '/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/'
+
 data_dir = {}
 data_dir['CUB']             = './filelists/CUB/' 
 data_dir['miniImagenet']    = './filelists/miniImagenet/' 

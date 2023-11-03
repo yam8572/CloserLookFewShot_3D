@@ -57,6 +57,7 @@ def train(base_loader, val_loader, model, optimization, start_epoch, stop_epoch,
 if __name__ == '__main__':
     np.random.seed(10)
     params = parse_args('train')
+    print("params",params)
 
     # if params.dataset == 'cross':
     #     base_file = configs.data_dir['miniImagenet'] + 'all.json'
@@ -68,6 +69,10 @@ if __name__ == '__main__':
     base_file = configs.data_dir[params.dataset] + 'base.json'
     val_file = configs.data_dir[params.dataset] + 'val.json'
 
+    print("base_file",base_file)
+    print("val_file",val_file)
+
+
     if 'Conv' in params.model:
         if params.dataset in ['omniglot', 'cross_char']:
             image_size = 28
@@ -75,10 +80,11 @@ if __name__ == '__main__':
             image_size = 84
     else:
         image_size = 224
+    print("image_size",image_size)
 
-    # if params.dataset in ['omniglot', 'cross_char']:
-    #     assert params.model == 'Conv4' and not params.train_aug, 'omniglot only support Conv4 without augmentation'
-    #     params.model = 'Conv4S'
+    # # if params.dataset in ['omniglot', 'cross_char']:
+    # #     assert params.model == 'Conv4' and not params.train_aug, 'omniglot only support Conv4 without augmentation'
+    # #     params.model = 'Conv4S'
 
     optimization = 'Adam'
 
@@ -99,8 +105,11 @@ if __name__ == '__main__':
                 params.stop_epoch = 600
             elif params.n_shot == 5:
                 params.stop_epoch = 400
+                print("stop_epoch",params.stop_epoch)
             else:
                 params.stop_epoch = 600  # default
+
+    print("stop_epoch",params.stop_epoch)
 
     if params.method in ['baseline', 'baseline++']:
         base_datamgr = SimpleDataManager(
@@ -134,6 +143,7 @@ if __name__ == '__main__':
             image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **train_few_shot_params)
         base_loader = base_datamgr.get_data_loader(
             base_file, aug=params.train_aug)
+        print("base_loader",base_loader)
 
         test_few_shot_params = dict(
             n_way=params.test_n_way, n_support=params.n_shot)
@@ -173,6 +183,48 @@ if __name__ == '__main__':
             voxnet.VoxNet.maml = True
             model = MAML(model_dict[params.model], params.voxelized, params.num_views, params.num_points, approx=(
                 params.method == 'maml_approx'), **train_few_shot_params)
+            """
+            model MAML(
+            (feature): PointNetEncoder(
+            (stn): STN3d(
+            (conv1): Conv1d_fw(6, 64, kernel_size=(1,), stride=(1,))
+            (conv2): Conv1d_fw(64, 128, kernel_size=(1,), stride=(1,))
+            (conv3): Conv1d_fw(128, 1024, kernel_size=(1,), stride=(1,))
+            (fc1): Linear_fw(in_features=1024, out_features=512, bias=True)
+            (fc2): Linear_fw(in_features=512, out_features=256, bias=True)
+            (fc3): Linear_fw(in_features=256, out_features=9, bias=True)
+            (relu): ReLU()
+            (bn1): BatchNorm1d_fw(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn2): BatchNorm1d_fw(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn3): BatchNorm1d_fw(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn4): BatchNorm1d_fw(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn5): BatchNorm1d_fw(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            )
+            (conv1): Conv1d_fw(6, 64, kernel_size=(1,), stride=(1,))
+            (conv2): Conv1d_fw(64, 128, kernel_size=(1,), stride=(1,))
+            (conv3): Conv1d_fw(128, 1024, kernel_size=(1,), stride=(1,))
+            (bn1): BatchNorm1d_fw(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn2): BatchNorm1d_fw(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn3): BatchNorm1d_fw(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (fstn): STNkd(
+            (conv1): Conv1d_fw(64, 64, kernel_size=(1,), stride=(1,))
+            (conv2): Conv1d_fw(64, 128, kernel_size=(1,), stride=(1,))
+            (conv3): Conv1d_fw(128, 1024, kernel_size=(1,), stride=(1,))
+            (fc1): Linear_fw(in_features=1024, out_features=512, bias=True)
+            (fc2): Linear_fw(in_features=512, out_features=256, bias=True)
+            (fc3): Linear_fw(in_features=256, out_features=4096, bias=True)
+            (relu): ReLU()
+            (bn1): BatchNorm1d_fw(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn2): BatchNorm1d_fw(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn3): BatchNorm1d_fw(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn4): BatchNorm1d_fw(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (bn5): BatchNorm1d_fw(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            )
+        )
+        (loss_fn): CrossEntropyLoss()
+        (classifier): Linear_fw(in_features=1024, out_features=5, bias=True)
+        )
+            """
             # maml use different parameter in omniglot
             # if params.dataset in ['omniglot', 'cross_char']:
             #     model.n_task = 32
@@ -190,6 +242,8 @@ if __name__ == '__main__':
     if not params.method in ['baseline', 'baseline++']:
         params.checkpoint_dir += '_%dway_%dshot' % (
             params.train_n_way, params.n_shot)
+        print("checkpoint_dir",params.checkpoint_dir)
+
 
     if not os.path.isdir(params.checkpoint_dir):
         os.makedirs(params.checkpoint_dir)
@@ -197,10 +251,12 @@ if __name__ == '__main__':
     start_epoch = params.start_epoch
     stop_epoch = params.stop_epoch
     if params.method == 'maml' or params.method == 'maml_approx':
-        # maml use multiple tasks in one update
-        stop_epoch = params.stop_epoch * model.n_task
+        # maml use multiple tasks in one update self.n_task = 4
+        stop_epoch = params.stop_epoch * model.n_task # 400*4=1600
 
+    # params.resume: continue from previous trained model with largest epoch
     if params.resume:
+        # /home/g111056119/Documents/7111056426/CloserLookFewShot_3D//checkpoints/modelnet40_points/Conv4_maml_5way_5shot
         resume_file = get_resume_file(params.checkpoint_dir)
         if resume_file is not None:
             tmp = torch.load(resume_file)
@@ -226,6 +282,13 @@ if __name__ == '__main__':
             model.feature.load_state_dict(state)
         else:
             raise ValueError('No warm_up file')
+
+    print("base_loader=",base_loader)
+    print("val_loader",val_loader)
+    print("optimization",optimization)
+    print("start_epoch",start_epoch)
+    print("stop_epoch",stop_epoch)
+    print("params",params)
 
     model = train(base_loader, val_loader, model, optimization,
                   start_epoch, stop_epoch, params)
