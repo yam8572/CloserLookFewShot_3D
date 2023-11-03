@@ -20,7 +20,9 @@ class MAML(MetaTemplate):
         self.classifier = backbone.Linear_fw(self.feat_dim, n_way)
         self.classifier.bias.data.fill_(0)
 
-        self.n_task = 4
+        # self.n_task = 4
+        self.n_task = 2
+
         self.task_update_num = 5
         self.train_lr = 0.01
         self.approx = approx  # first order approx.

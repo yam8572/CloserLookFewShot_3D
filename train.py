@@ -290,5 +290,5 @@ if __name__ == '__main__':
     print("stop_epoch",stop_epoch)
     print("params",params)
 
-    model = train(base_loader, val_loader, model, optimization,
-                  start_epoch, stop_epoch, params)
+    # model = train(base_loader, val_loader, model, optimization,
+    #               start_epoch, stop_epoch, params)

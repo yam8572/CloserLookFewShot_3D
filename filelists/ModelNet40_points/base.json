@@ -25,7 +25,7 @@
     "cup",
     "bowl"
   ],
-  "image_names": [/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled
+  "image_names": [
     "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/airplane/airplane_0001.txt",
     "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/airplane/airplane_0002.txt",
     "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/airplane/airplane_0003.txt",

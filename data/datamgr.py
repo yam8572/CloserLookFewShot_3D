@@ -68,7 +68,7 @@ class SimpleDataManager(DataManager):
         dataset = SimpleDataset(data_file, transform,
                                 self.vox, self.n_views, self.n_points)
         data_loader_params = dict(
-            batch_size=self.batch_size, shuffle=True, num_workers=12, pin_memory=True)
+            batch_size=self.batch_size, shuffle=True, num_workers=12, pin_memory=False)
         data_loader = torch.utils.data.DataLoader(
             dataset, **data_loader_params)
 
@@ -96,7 +96,7 @@ class SetDataManager(DataManager):
         sampler = EpisodicBatchSampler(
             len(dataset), self.n_way, self.n_eposide)
         data_loader_params = dict(
-            batch_sampler=sampler, num_workers=12, pin_memory=True)
+            batch_sampler=sampler, num_workers=12, pin_memory=False)
         data_loader = torch.utils.data.DataLoader(
             dataset, **data_loader_params)
         return data_loader
