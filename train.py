@@ -173,7 +173,7 @@ if __name__ == '__main__':
         #     model = RelationNet(
         #         feature_model, loss_type=loss_type, **train_few_shot_params)
         elif params.method in ['maml', 'maml_approx']:
-            # params.resume=True
+            params.resume=True
             backbone.ConvBlock.maml = True
             backbone.SimpleBlock.maml = True
             backbone.BottleneckBlock.maml = True
