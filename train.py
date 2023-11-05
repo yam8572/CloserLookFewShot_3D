@@ -135,6 +135,7 @@ if __name__ == '__main__':
     elif params.method in ['protonet', 'matchingnet', 'relationnet', 'relationnet_softmax', 'maml', 'maml_approx']:
         # if test_n_way is smaller than train_n_way, reduce n_query to keep batch size small
         n_query = max(1, int(16 * params.test_n_way / params.train_n_way))
+        print("n_query",n_query)
         # n_query = 8
 
         train_few_shot_params = dict(
@@ -291,5 +292,5 @@ if __name__ == '__main__':
     print("stop_epoch",stop_epoch)
     print("params",params)
 
-    model = train(base_loader, val_loader, model, optimization,
-                  start_epoch, stop_epoch, params)
+    # model = train(base_loader, val_loader, model, optimization,
+    #               start_epoch, stop_epoch, params)

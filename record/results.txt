@@ -1,0 +1,2 @@
+Time: 20231104-085335, Setting: modelnet40_points-novel-Conv4-maml_approx 5shot 5way_train 5way_test, Acc: 600 Test Acc = 22.20% +- 0.41% 
+Time: 20231104-085725, Setting: modelnet40_points-novel-Conv4-maml 5shot 5way_train 5way_test, Acc: 600 Test Acc = 20.32% +- 0.17% 

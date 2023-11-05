@@ -10,7 +10,7 @@ import os
 import sys
 sys.path.insert(0, 'utils/')
 # from ..utils import binvox_rw
-import binvox_rw
+# import binvox_rw
 
 def identity(x): return x
 
@@ -19,6 +19,7 @@ class SimpleDataset:
     def __init__(self, data_file, transform, vox, n_views, n_points, target_transform=identity):
         with open(data_file, 'r') as f:
             self.meta = json.load(f)
+        print("self.meta=",self.meta)
         self.transform = transform
         self.target_transform = target_transform
         self.n_views = n_views

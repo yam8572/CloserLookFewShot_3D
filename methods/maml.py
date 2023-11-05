@@ -76,13 +76,17 @@ class MAML(MetaTemplate):
             # embed()
             set_loss = self.loss_fn(scores, y_a_i)
             # build full graph support gradient of gradient
+            # torch.autograd.grad時設定allow_unused=True
+            # PyTorch允許未被使用的張量。 但要小心，確保這是你所期望的行為，因為允許未使用的張量可能導致不正確的梯度計算。
             grad = torch.autograd.grad(
-                set_loss, fast_parameters, create_graph=True)
+                set_loss, fast_parameters, create_graph=True, allow_unused=True)
             # grad = torch.autograd.grad(
             #     set_loss, fast_parameters, create_graph=True, allow_unused=True)
             if self.approx:
                 # do not calculate gradient of gradient if using first order approximation
-                grad = [g.detach() for g in grad]
+                # grad = [g.detach() for g in grad]
+                grad = [g.detach() if g is not None else None for g in grad]
+
             fast_parameters = []
             for k, weight in enumerate(self.parameters()):
                 # if grad[k] == None:
@@ -93,7 +97,9 @@ class MAML(MetaTemplate):
                         grad[k]  # create weight.fast
                 else:
                     # create an updated weight.fast, note the '-' is not merely minus value, but to create a new weight.fast
-                    weight.fast = weight.fast - self.train_lr * grad[k]
+                    if grad[k] is not None:
+                        weight.fast = weight.fast - self.train_lr * grad[k]
+                    # weight.fast = weight.fast - self.train_lr * grad[k]
                 # gradients calculated in line 45 are based on newest fast weight, but the graph will retain the link to old weight.fasts
                 fast_parameters.append(weight.fast)
 

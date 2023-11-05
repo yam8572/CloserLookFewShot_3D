@@ -62,7 +62,9 @@ if __name__ == '__main__':
     elif params.method == 'baseline++':
         model           = BaselineFinetune( model_dict[params.model], loss_type = 'dist', **few_shot_params )
     elif params.method == 'protonet':
-        model           = ProtoNet( model_dict[params.model], **few_shot_params )
+         model = ProtoNet(model_dict[params.model],
+                             params.voxelized, params.num_views, params.num_points, **few_shot_params)
+        # model           = ProtoNet( model_dict[params.model], **few_shot_params )
     elif params.method == 'matchingnet':
         model           = MatchingNet( model_dict[params.model], **few_shot_params )
     elif params.method in ['relationnet', 'relationnet_softmax']:
@@ -81,7 +83,9 @@ if __name__ == '__main__':
         backbone.SimpleBlock.maml = True
         backbone.BottleneckBlock.maml = True
         backbone.ResNet.maml = True
-        model = MAML(  model_dict[params.model], approx = (params.method == 'maml_approx') , **few_shot_params )
+        model = MAML(model_dict[params.model], params.voxelized, params.num_views, params.num_points, approx=(
+                params.method == 'maml_approx'), **few_shot_params)
+        # model = MAML(  model_dict[params.model], approx = (params.method == 'maml_approx') , **few_shot_params )
         if params.dataset in ['omniglot', 'cross_char']: #maml use different parameter in omniglot
             model.n_task     = 32
             model.task_update_num = 1
@@ -122,8 +126,8 @@ if __name__ == '__main__':
         else:
             image_size = 224
 
-        datamgr         = SetDataManager(image_size, n_eposide = iter_num, n_query = 15 , **few_shot_params)
-        
+        # datamgr = SetDataManager(image_size, n_eposide = iter_num, n_query = 15 , **few_shot_params)
+        datamgr = SetDataManager(image_size, n_eposide = iter_num, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, n_query=15, **few_shot_params)
         if params.dataset == 'cross':
             if split == 'base':
                 loadfile = configs.data_dir['miniImagenet'] + 'all.json' 
