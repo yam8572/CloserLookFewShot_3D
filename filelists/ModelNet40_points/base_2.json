@@ -1,0 +1,31 @@
+{
+  "label_names": [
+    "airplane",
+    "person",
+    "toilet",
+    "bottle",
+    "radio"
+  ],
+  "image_names": [
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/airplane/airplane_0001.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/airplane/airplane_0002.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/airplane/airplane_0003.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/person/person_0106.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/person/person_0107.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/person/person_0108.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/toilet/toilet_0355.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/bottle/bottle_0052.txt",
+    "/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/radio/radio_0012.txt"
+  ],
+  "image_labels": [
+    2,
+    2,
+    2,
+    36,
+    36,
+    36,
+    1,
+    3,
+    5
+  ]
+}

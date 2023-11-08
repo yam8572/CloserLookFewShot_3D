@@ -97,13 +97,16 @@ class SetDataset:
             self.meta = json.load(f)
 
         self.cl_list = np.unique(self.meta['image_labels']).tolist()
-
+        # print("cl_list",self.cl_list)
+        # cl_list [2, 3, 4, 7, 8, 9, 12, 13, 14, 17, 18, 19, 22, 23, 24, 27, 28, 29, 32, 33, 34, 37, 38, 39]
         self.sub_meta = {}
         for cl in self.cl_list:
             self.sub_meta[cl] = []
-
+        # sub_meta {2: [], 3: [], 4: [], 7: [], 8: [], 9: [], 12: [], 13: [], 14: [], 17: [], 18: [], 19: [], 22: [], 23: [], 24: [], 27: [], 28: [], 29: [], 32: [], 33: [], 34: [], 37: [], 38: [], 39: []}
+        # print("sub_meta",self.sub_meta)
         if self.n_views:
             stride = int(12 / self.n_views)
+            # self.meta['image_names'] >> modelnert40 path 路徑
             for x, y in zip(self.meta['image_names'][::stride], self.meta['image_labels'][::stride]):
                 self.sub_meta[y].append(x)
             shuffle = False
@@ -111,26 +114,29 @@ class SetDataset:
             for x, y in zip(self.meta['image_names'], self.meta['image_labels']):
                 self.sub_meta[y].append(x)
             shuffle = True
-
+            # self.sub_meta {36: ['/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/person/person_0106.txt', '/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/person/person_0107.txt', '/home/g111056119/Documents/7111056426/CloserLookFewShot_3D/filelists/ModelNet40_points/modelnet40_normal_resampled/person/person_0108.txt']}
+            # print("self.sub_meta",self.sub_meta)
         self.sub_dataloader = []
         sub_data_loader_params = dict(batch_size=batch_size,
                                       shuffle=shuffle,
                                       num_workers=0,  # use main thread only or may receive multiple batches
                                       pin_memory=False)
         for cl in self.cl_list:
-            if self.n_views:
-                # shuffle
-                rand_idx = np.random.permutation(
-                    int(len(self.sub_meta[cl]) / self.n_views))
-                sub_meta_new = []
-                for i in range(len(rand_idx)):
-                    sub_meta_new.extend(
-                        self.sub_meta[cl][rand_idx[i] * self.n_views:(rand_idx[i] + 1) * self.n_views])
-                self.sub_meta[cl] = sub_meta_new
+            # if self.n_views:
+            #     # shuffle
+            #     rand_idx = np.random.permutation(
+            #         int(len(self.sub_meta[cl]) / self.n_views))
+            #     sub_meta_new = []
+            #     for i in range(len(rand_idx)):
+            #         sub_meta_new.extend(
+            #             self.sub_meta[cl][rand_idx[i] * self.n_views:(rand_idx[i] + 1) * self.n_views])
+            #     self.sub_meta[cl] = sub_meta_new
             sub_dataset = SubDataset(
                 self.sub_meta[cl], cl, transform=transform, vox=self.vox, n_views=self.n_views, n_points=self.n_points)
             self.sub_dataloader.append(torch.utils.data.DataLoader(
                 sub_dataset, **sub_data_loader_params))
+        print("sub_dataset",sub_dataset)
+        print("self.sub_dataloader",self.sub_dataloader)
 
     def __getitem__(self, i):
         return next(iter(self.sub_dataloader[i]))

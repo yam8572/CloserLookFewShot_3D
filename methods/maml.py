@@ -46,8 +46,11 @@ class MAML(MetaTemplate):
         elif self.n_points:
             x_a_i = x_var[:, :self.n_support, :, :].contiguous().view(
                 self.n_way * self.n_support, *x.size()[2:])  # support data
+            # print("x_a_i",x_a_i)
             x_b_i = x_var[:, self.n_support:, :, :].contiguous().view(
                 self.n_way * self.n_query, *x.size()[2:])  # query data
+            # print("x_b_i",x_b_i)
+            
             x_a_i = x_a_i.transpose(2, 1)
             x_b_i = x_b_i.transpose(2, 1)
         elif self.vox:
@@ -128,29 +131,37 @@ class MAML(MetaTemplate):
 
         # train
         for i, (x, _) in enumerate(train_loader):
-            if self.vox:
-                x = x.float()
+            # if self.vox:
+            #     x = x.float()
+            # x.size(1) = 21=16+5
+            # self.n_query=16,self.n_support=5
+            # self.n_way=5,x.size(0)=5
+            # print(f"i={i} (x,_)={x,_}") 
+            print(f"i={i}") 
+            print("x.size(1)",x.size(1))# 21
             self.n_query = x.size(1) - self.n_support
+            print(f"self.n_query={self.n_query},self.n_support={self.n_support}")
+            print(f"self.n_way={self.n_way},x.size(0)={x.size(0)}")
             assert self.n_way == x.size(0), "MAML do not support way change"
 
-            loss = self.set_forward_loss(x)
-            # avg_loss = avg_loss + loss.data[0]
-            avg_loss = avg_loss + loss.data.item()
-            loss_all.append(loss)
+            # loss = self.set_forward_loss(x)
+            # # avg_loss = avg_loss + loss.data[0]
+            # avg_loss = avg_loss + loss.data.item()
+            # loss_all.append(loss)
 
-            task_count += 1
+            # task_count += 1
 
-            if task_count == self.n_task:  # MAML update several tasks at one time
-                loss_q = torch.stack(loss_all).sum(0)
-                loss_q.backward()
+            # if task_count == self.n_task:  # MAML update several tasks at one time
+            #     loss_q = torch.stack(loss_all).sum(0)
+            #     loss_q.backward()
 
-                optimizer.step()
-                task_count = 0
-                loss_all = []
-            optimizer.zero_grad()
-            if i % print_freq == 0:
-                print('Epoch {:d} | Batch {:d}/{:d} | Loss {:f}'.format(epoch,
-                                                                        i, len(train_loader), avg_loss / float(i + 1)))
+            #     optimizer.step()
+            #     task_count = 0
+            #     loss_all = []
+            # optimizer.zero_grad()
+            # if i % print_freq == 0:
+            #     print('Epoch {:d} | Batch {:d}/{:d} | Loss {:f}'.format(epoch,
+            #                                                             i, len(train_loader), avg_loss / float(i + 1)))
 
     def test_loop(self, test_loader, return_std=False):  # overwrite parrent function
         correct = 0
@@ -159,12 +170,19 @@ class MAML(MetaTemplate):
 
         iter_num = len(test_loader)
         for i, (x, _) in enumerate(test_loader):
+            print(f"i={i}") 
+            print("x.size()[2:]",x.size()[2:]) # torch.Size([1024, 6])
             if self.vox:
                 x = x.float()
             self.n_query = x.size(1) - self.n_support
+            print("x.size(1)",x.size(1))# 21
+            print("x.size(0)",x.size(0))# 5
+        
             assert self.n_way == x.size(0), "MAML do not support way change"
+
             correct_this, count_this = self.correct(x)
             acc_all.append(correct_this / count_this * 100)
+        print(f"i={i} (x,_)={x,_}") 
 
         acc_all = np.asarray(acc_all)
         acc_mean = np.mean(acc_all)

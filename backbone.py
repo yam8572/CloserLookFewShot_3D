@@ -111,6 +111,7 @@ class ConvBlock(nn.Module):
         self.indim  = indim
         self.outdim = outdim
         if self.maml:
+            # (self, in_channels, out_channels, kernel_size, stride=1,padding=0, bias = True
             self.C      = Conv2d_fw(indim, outdim, 3, padding = padding)
             self.BN     = BatchNorm2d_fw(outdim)
         else:
@@ -141,6 +142,7 @@ class SimpleBlock(nn.Module):
         self.indim = indim
         self.outdim = outdim
         if self.maml:
+            # self, in_channels, out_channels, kernel_size, stride=1,padding=0, bias = True
             self.C1 = Conv2d_fw(indim, outdim, kernel_size=3, stride=2 if half_res else 1, padding=1, bias=False)
             self.BN1 = BatchNorm2d_fw(outdim)
             self.C2 = Conv2d_fw(outdim, outdim,kernel_size=3, padding=1,bias=False)
@@ -160,10 +162,11 @@ class SimpleBlock(nn.Module):
         # if the input number of channels is not equal to the output, then need a 1x1 convolution
         if indim!=outdim:
             if self.maml:
-                self.shortcut = Conv2d_fw(indim, outdim, 1, 2 if half_res else 1, bias=False)
+                # (self, in_channels, out_channels, kernel_size, stride=1,padding=0, bias = True
+                self.shortcut = Conv2d_fw(indim, outdim, kernel_size=1, stride=2 if half_res else 1, bias=False)
                 self.BNshortcut = BatchNorm2d_fw(outdim)
             else:
-                self.shortcut = nn.Conv2d(indim, outdim, 1, 2 if half_res else 1, bias=False)
+                self.shortcut = nn.Conv2d(indim, outdim, kernel_size=1, stride=2 if half_res else 1, bias=False)
                 self.BNshortcut = nn.BatchNorm2d(outdim)
 
             self.parametrized_layers.append(self.shortcut)
@@ -197,18 +200,18 @@ class BottleneckBlock(nn.Module):
         self.indim = indim
         self.outdim = outdim
         if self.maml:
-            self.C1 = Conv2d_fw(indim, bottleneckdim, kernel_size=1,  bias=False)
+            self.C1 = Conv2d_fw(in_channels=indim, out_channels=bottleneckdim, kernel_size=1,  bias=False)
             self.BN1 = BatchNorm2d_fw(bottleneckdim)
-            self.C2 = Conv2d_fw(bottleneckdim, bottleneckdim, kernel_size=3, stride=2 if half_res else 1,padding=1)
+            self.C2 = Conv2d_fw(in_channels=bottleneckdim, out_channels=bottleneckdim, kernel_size=3, stride=2 if half_res else 1,padding=1)
             self.BN2 = BatchNorm2d_fw(bottleneckdim)
-            self.C3 = Conv2d_fw(bottleneckdim, outdim, kernel_size=1, bias=False)
+            self.C3 = Conv2d_fw(in_channels=bottleneckdim, out_channels=outdim, kernel_size=1, bias=False)
             self.BN3 = BatchNorm2d_fw(outdim)
         else:
-            self.C1 = nn.Conv2d(indim, bottleneckdim, kernel_size=1,  bias=False)
+            self.C1 = nn.Conv2d(in_channels=indim, out_channels=bottleneckdim, kernel_size=1,  bias=False)
             self.BN1 = nn.BatchNorm2d(bottleneckdim)
-            self.C2 = nn.Conv2d(bottleneckdim, bottleneckdim, kernel_size=3, stride=2 if half_res else 1,padding=1)
+            self.C2 = nn.Conv2d(in_channels=bottleneckdim, out_channels=bottleneckdim, kernel_size=3, stride=2 if half_res else 1,padding=1)
             self.BN2 = nn.BatchNorm2d(bottleneckdim)
-            self.C3 = nn.Conv2d(bottleneckdim, outdim, kernel_size=1, bias=False)
+            self.C3 = nn.Conv2d(in_channels=bottleneckdim, out_channels=outdim, kernel_size=1, bias=False)
             self.BN3 = nn.BatchNorm2d(outdim)
 
         self.relu = nn.ReLU()
@@ -219,9 +222,9 @@ class BottleneckBlock(nn.Module):
         # if the input number of channels is not equal to the output, then need a 1x1 convolution
         if indim!=outdim:
             if self.maml:
-                self.shortcut = Conv2d_fw(indim, outdim, 1, stride=2 if half_res else 1, bias=False)
+                self.shortcut = Conv2d_fw(in_channels=indim, out_channels=outdim, kernel_size=1, stride=2 if half_res else 1, bias=False)
             else:
-                self.shortcut = nn.Conv2d(indim, outdim, 1, stride=2 if half_res else 1, bias=False)
+                self.shortcut = nn.Conv2d(in_channels=indim, out_channels=outdim, kernel_size=1, stride=2 if half_res else 1, bias=False)
 
             self.parametrized_layers.append(self.shortcut)
             self.shortcut_type = '1x1'
@@ -248,7 +251,7 @@ class BottleneckBlock(nn.Module):
         out = self.relu(out)
         return out
 
-
+# only pooling for fist 4 layers
 class ConvNet(nn.Module):
     def __init__(self, depth, flatten = True, n_views=None):
         super(ConvNet,self).__init__()
@@ -273,7 +276,7 @@ class ConvNet(nn.Module):
             return torch.max(y,1)[0].view(y.shape[0],-1)
         else:
             return out
-
+# only first two layers pooling and first two layers np padding
 class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in only first two layers, else no pooling
     def __init__(self, depth):
         super(ConvNetNopool,self).__init__()
@@ -290,7 +293,7 @@ class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in
     def forward(self,x):
         out = self.trunk(x)
         return out
-
+# only pooling for fist 4 layers
 class ConvNetS(nn.Module): #For omniglot, only 1 input channel, output dim is 64
     def __init__(self, depth, flatten = True):
         super(ConvNetS,self).__init__()
@@ -298,7 +301,7 @@ class ConvNetS(nn.Module): #For omniglot, only 1 input channel, output dim is 64
         for i in range(depth):
             indim = 1 if i == 0 else 64
             outdim = 64
-            B = ConvBlock(indim, outdim, pool = ( i <4 ) ) #only pooling for fist 4 layers
+            B = ConvBlock(indim, outdim, pool = ( i < 4 ) ) # only pooling for fist 4 layers
             trunk.append(B)
 
         if flatten:
@@ -308,11 +311,11 @@ class ConvNetS(nn.Module): #For omniglot, only 1 input channel, output dim is 64
         self.final_feat_dim = 64
 
     def forward(self,x):
-        out = x[:,0:1,:,:] #only use the first dimension
+        out = x[:,0:1,:,:] # only use the first dimension
         out = self.trunk(out)
         return out
 
-class ConvNetSNopool(nn.Module): #Relation net use a 4 layer conv with pooling in only first two layers, else no pooling. For omniglot, only 1 input channel, output dim is [64,5,5]
+class ConvNetSNopool(nn.Module): # Relation net use a 4 layer conv with pooling in only first two layers, else no pooling. For omniglot, only 1 input channel, output dim is [64,5,5]
     def __init__(self, depth):
         super(ConvNetSNopool,self).__init__()
         trunk = []
@@ -341,11 +344,11 @@ class ResNet(nn.Module):
 
         assert len(list_of_num_layers)==4, 'Can have only four stages'
         if self.maml:
-            conv1 = Conv2d_fw(3, 64, kernel_size=7, stride=2, padding=3,
+            conv1 = Conv2d_fw(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3,
                                                bias=False)
             bn1 = BatchNorm2d_fw(64)
         else:
-            conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
+            conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3,
                                                bias=False)
             bn1 = nn.BatchNorm2d(64)
 
@@ -386,38 +389,68 @@ class ResNet(nn.Module):
             return out
 
 def Conv4(n_views=None):
-    return ConvNet(4, n_views=n_views)
+    return ConvNet(depth=4, n_views=n_views)
 
 def Conv6():
-    return ConvNet(6)
+    return ConvNet(depth=6)
 
 def Conv4NP():
-    return ConvNetNopool(4)
+    return ConvNetNopool(depth=4)
 
 def Conv6NP():
-    return ConvNetNopool(6)
+    return ConvNetNopool(depth=6)
 
 def Conv4S():
-    return ConvNetS(4)
+    return ConvNetS(depth=4)
 
 def Conv4SNP():
-    return ConvNetSNopool(4)
+    return ConvNetSNopool(depth=4)
 
 def ResNet10( flatten = True):
-    return ResNet(SimpleBlock, [1,1,1,1],[64,128,256,512], flatten)
+    return ResNet(block=SimpleBlock, list_of_num_layers=[1,1,1,1],list_of_out_dims=[64,128,256,512], flatten=flatten)
 
 def ResNet18(flatten = True, n_views=None):
-    return ResNet(SimpleBlock, [2,2,2,2],[64,128,256,512], flatten, n_views)
+    return ResNet(block=SimpleBlock, list_of_num_layers=[2,2,2,2],list_of_out_dims=[64,128,256,512], flatten=flatten, n_views=n_views)
 
 def ResNet34( flatten = True):
-    return ResNet(SimpleBlock, [3,4,6,3],[64,128,256,512], flatten)
+    return ResNet(block=SimpleBlock,list_of_num_layers= [3,4,6,3],list_of_out_dims=[64,128,256,512], flatten=flatten)
 
 def ResNet50( flatten = True):
-    return ResNet(BottleneckBlock, [3,4,6,3], [256,512,1024,2048], flatten)
+    return ResNet(block=BottleneckBlock, list_of_num_layers=[3,4,6,3], list_of_out_dims=[256,512,1024,2048], flatten=flatten)
 
 def ResNet101( flatten = True):
-    return ResNet(BottleneckBlock, [3,4,23,3],[256,512,1024,2048], flatten)
+    return ResNet(block=BottleneckBlock, list_of_num_layers=[3,4,23,3],list_of_out_dims=[256,512,1024,2048], flatten=flatten)
 
 
 
+"""
+這些模型是卷積神經網路（CNN）和深度殘差網路（ResNet）的不同架構，它們具有不同的層次結構和參數設定。 下面是它們之間的主要區別：
 
+**ConvNet vs. ResNet:**
+
+1. **ConvNet**：這是一個基本的捲積神經網絡，通常用於較簡單的視覺任務。 它可以有不同的深度，例如Conv4和Conv6，以及是否包括池化層。
+
+2. **ResNet**：這是一個深度殘差網絡，專門設計用於解決深度神經網路訓練中的梯度消失問題。 ResNet具有更深的結構，包括殘差塊，允許訓練非常深的網路。 ResNet模型在更複雜的視覺任務上通常表現較好。
+
+**ConvNetNopool vs. ConvNetSNopool:**
+
+1. **ConvNetNopool**：這是一個ConvNet架構，具有4層卷積層，並且只在前兩層使用池化層。 這適用於特定的任務，例如關係網絡。
+
+2. **ConvNetSNopool**：這也是一個ConvNet架構，但只有一個輸入通道，適用於一些特定的任務，例如Omniglot資料集。 同樣，它在前兩層使用池化。
+
+**ResNet10 vs. ResNet18 vs. ResNet34 vs. ResNet50 vs. ResNet101:**
+
+這些ResNet模型的差異在於它們的深度和參數設定。
+
+1. **ResNet10**：相對較淺的ResNet模型，具有較少的層次和參數。
+
+2. **ResNet18**：深度為18層的ResNet模型，適用於一般的視覺任務。
+
+3. **ResNet34**：深度為34層的ResNet模型，比ResNet18更深，通常在更複雜的任務上使用。
+
+4. **ResNet50**：深度為50層的ResNet模型，更深的結構，通常用於大規模的影像辨識任務。
+
+5. **ResNet101**：深度為101層的ResNet模型，比ResNet50更深，對於非常複雜的任務或大規模資料集非常有用。
+
+在選擇模型時，要考慮任務的複雜性以及可用的運算資源。 通常，深層的ResNet模型在大型資料集上表現較好，而較淺的ConvNet模型可能在小型資料集或特定任務上較為合適。
+"""

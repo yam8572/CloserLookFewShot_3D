@@ -33,23 +33,23 @@ def train(base_loader, val_loader, model, optimization, start_epoch, stop_epoch,
     for epoch in range(start_epoch, stop_epoch):
         model.train()
         # model are called by reference, no need to return
-        model.train_loop(epoch, base_loader, optimizer)
-        model.eval()
+        # model.train_loop(epoch, base_loader, optimizer)
+        # model.eval()
 
-        if not os.path.isdir(params.checkpoint_dir):
-            os.makedirs(params.checkpoint_dir)
+        # if not os.path.isdir(params.checkpoint_dir):
+        #     os.makedirs(params.checkpoint_dir)
 
         acc = model.test_loop(val_loader)
-        if acc > max_acc:  # for baseline and baseline++, we don't use validation in default and we let acc = -1, but we allow options to validate with DB index
-            print("best model! save...")
-            max_acc = acc
-            outfile = os.path.join(params.checkpoint_dir, 'best_model.tar')
-            torch.save({'epoch': epoch, 'state': model.state_dict()}, outfile)
+        # if acc > max_acc:  # for baseline and baseline++, we don't use validation in default and we let acc = -1, but we allow options to validate with DB index
+        #     print("best model! save...")
+        #     max_acc = acc
+        #     outfile = os.path.join(params.checkpoint_dir, 'best_model.tar')
+        #     torch.save({'epoch': epoch, 'state': model.state_dict()}, outfile)
 
-        if (epoch % params.save_freq == 0) or (epoch == stop_epoch - 1):
-            outfile = os.path.join(params.checkpoint_dir,
-                                   '{:d}.tar'.format(epoch))
-            torch.save({'epoch': epoch, 'state': model.state_dict()}, outfile)
+        # if (epoch % params.save_freq == 0) or (epoch == stop_epoch - 1):
+        #     outfile = os.path.join(params.checkpoint_dir,
+        #                            '{:d}.tar'.format(epoch))
+        #     torch.save({'epoch': epoch, 'state': model.state_dict()}, outfile)
 
     return model
 
@@ -134,20 +134,25 @@ if __name__ == '__main__':
 
     elif params.method in ['protonet', 'matchingnet', 'relationnet', 'relationnet_softmax', 'maml', 'maml_approx']:
         # if test_n_way is smaller than train_n_way, reduce n_query to keep batch size small
-        n_query = max(1, int(16 * params.test_n_way / params.train_n_way))
+        n_query = max(1, int(16 * params.test_n_way / params.train_n_way)) # max(1,16 *5/5) = 16
         print("n_query",n_query)
         # n_query = 8
 
         train_few_shot_params = dict(
             n_way=params.train_n_way, n_support=params.n_shot)
+
+        # 載入train dataset資料 base.json
         base_datamgr = SetDataManager(
             image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **train_few_shot_params)
+        # print("base_datamgr=",base_datamgr)
         base_loader = base_datamgr.get_data_loader(
             base_file, aug=params.train_aug)
-        print("base_loader",base_loader)
+        # print("base_loader",base_loader)
 
         test_few_shot_params = dict(
             n_way=params.test_n_way, n_support=params.n_shot)
+        
+        # 載入train dataset資料 val.json
         val_datamgr = SetDataManager(
             image_size, vox=params.voxelized, n_views=params.num_views, n_points=params.num_points, n_query=n_query, **test_few_shot_params)
         val_loader = val_datamgr.get_data_loader(val_file, aug=False)
@@ -186,6 +191,19 @@ if __name__ == '__main__':
             model = MAML(model_dict[params.model], params.voxelized, params.num_views, params.num_points, approx=(
                 params.method == 'maml_approx'), **train_few_shot_params)
             """
+            model_dict = dict(
+            Conv4=backbone.Conv4,
+            Conv4S=backbone.Conv4S,
+            Conv6=backbone.Conv6,
+            ResNet10=backbone.ResNet10,
+            ResNet18=backbone.ResNet18,
+            ResNet34=backbone.ResNet34,
+            ResNet50=backbone.ResNet50,
+            ResNet101=backbone.ResNet101)
+
+            train_few_shot_params = dict(
+            n_way=params.train_n_way, n_support=params.n_shot)
+
             model MAML(
             (feature): PointNetEncoder(
             (stn): STN3d(
@@ -292,5 +310,5 @@ if __name__ == '__main__':
     print("stop_epoch",stop_epoch)
     print("params",params)
 
-    # model = train(base_loader, val_loader, model, optimization,
-    #               start_epoch, stop_epoch, params)
+    model = train(base_loader, val_loader, model, optimization,
+                  start_epoch, stop_epoch, params)

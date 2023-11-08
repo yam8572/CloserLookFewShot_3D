@@ -80,7 +80,7 @@ class SetDataManager(DataManager):
         super(SetDataManager, self).__init__()
         self.image_size = image_size
         self.n_way = n_way
-        self.batch_size = n_support + n_query
+        self.batch_size = n_support + n_query # 5+5=10
         self.n_eposide = n_eposide
         self.n_views = n_views
         self.n_points = n_points
@@ -91,6 +91,7 @@ class SetDataManager(DataManager):
     # parameters that would change on train/val set
     def get_data_loader(self, data_file, aug):
         transform = self.trans_loader.get_composed_transform(aug)
+        # 載入train dataset資料 base.json
         dataset = SetDataset(data_file, self.batch_size,
                              transform, self.vox, self.n_views, self.n_points)
         sampler = EpisodicBatchSampler(
