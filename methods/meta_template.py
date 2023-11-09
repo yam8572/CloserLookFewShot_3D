@@ -12,7 +12,7 @@ from voxnet import VoxNet
 # import provider
 from IPython import embed
 
-
+# parent 父類
 class MetaTemplate(nn.Module):
     def __init__(self, model_func, vox, n_views, n_points, n_way, n_support, change_way=True):
         super(MetaTemplate, self).__init__()
@@ -161,3 +161,56 @@ class MetaTemplate(nn.Module):
 
         scores = linear_clf(z_query)
         return scores
+
+'''
+繼承用法範例
+# 父类（基类）
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        pass
+
+# 子类（派生类），继承自 Animal
+class Dog(Animal):
+    def speak(self):
+        return f"{self.name} says Woof!"
+
+class Cat(Animal):
+    def speak(self):
+        return f"{self.name} says Meow!"
+
+# 创建子类的实例
+dog = Dog("Buddy")
+cat = Cat("Whiskers")
+
+# 调用子类的方法
+print(dog.speak())  # 输出：Buddy says Woof!
+print(cat.speak())  # 输出：Whiskers says Meow!
+
+'''
+
+"""
+@abstractmethod 是 Python 中的一個裝飾器，用於定義抽象方法。 抽象方法是在抽象類別中聲明的方法，但沒有提供具體的實作。 抽象類別本身不能被實例化，而是用作其他類別的基類，要求子類別提供抽象方法的具體實作。
+使用 @abstractmethod 裝飾器可以告訴 Python 解釋器，這是一個抽象方法，必須在子類別中實作。
+
+from abc import ABC, abstractmethod
+
+class MyAbstractClass(ABC):  # 继承 ABC（Abstract Base Class）
+    @abstractmethod
+    def my_abstract_method(self):
+        pass
+
+class MyConcreteClass(MyAbstractClass):
+    def my_abstract_method(self):
+        print("Implemented abstract method")
+
+# 试图实例化抽象类会引发错误
+# my_obj = MyAbstractClass()  # 会引发 TypeError
+
+my_obj = MyConcreteClass()
+my_obj.my_abstract_method()  # 输出：Implemented abstract method
+
+
+"""

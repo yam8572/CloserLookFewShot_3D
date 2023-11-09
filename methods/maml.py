@@ -10,7 +10,7 @@ from methods.meta_template import MetaTemplate
 
 from IPython import embed
 
-
+# 子類: 繼承MetaTemplate >> 看 MetaTemplate.py
 class MAML(MetaTemplate):
     def __init__(self, model_func, vox, n_views, n_points, n_way, n_support, approx=False):
         super(MAML, self).__init__(model_func, vox, n_views,
@@ -30,29 +30,41 @@ class MAML(MetaTemplate):
     def forward(self, x):
         out = self.feature.forward(x)
         # embed()
+        # backbone.py backbone.Linear_fw..forward(out)
         scores = self.classifier.forward(out)
         return scores
 
     def set_forward(self, x, is_feature=False):
         assert is_feature == False, 'MAML do not support fixed feature'
         x = x.cuda()
-        x_var = Variable(x)
+        # x_var = Variable(x) 就寫法
+        # 多為數組(張量)已經預設啟用了自動微分。 如果你需要計算梯度，只要設定 requires_grad=True
+        x_var = torch.Tensor(x)
+        x.requires_grad = True  # 設置需要梯度跟踪
+        # print(f"x.shape={x.shape}") # torch.Size([5, 21, 1024, 6]
+        # print(f"x_var.shape={x_var.shape}")# torch.Size([5, 21, 1024, 6]
         # embed()
+        """
+        .contiguous():當你需要重新整形（reshape）一個張量時，有時會出現錯誤，這是因為 PyTorch 張量在記憶體中不一定是連續儲存的。 
+        為了解決這個問題，你可以使用 `.contiguous()` 方法，它會建立一個連續儲存的新張量，以便進行後續操作。
+        .view():reshape tensor size
+        """
         if self.n_views:
             x_a_i = x_var[:, :self.n_support, :, :, :, :].contiguous().view(
                 self.n_way * self.n_support * self.n_views, *x.size()[3:])  # support data
             x_b_i = x_var[:, self.n_support:, :, :, :, :].contiguous().view(
                 self.n_way * self.n_query * self.n_views, *x.size()[3:])  # query data
-        elif self.n_points:
+        elif self.n_points: # x.size()[2:]第三維度大小
             x_a_i = x_var[:, :self.n_support, :, :].contiguous().view(
                 self.n_way * self.n_support, *x.size()[2:])  # support data
-            # print("x_a_i",x_a_i)
+            # print("x_a_i.shape=",x_a_i.shape) # torch.Size([5*5=25, 1024, 6])
             x_b_i = x_var[:, self.n_support:, :, :].contiguous().view(
                 self.n_way * self.n_query, *x.size()[2:])  # query data
-            # print("x_b_i",x_b_i)
+            # print("x_b_i.shape",x_b_i.shape)# torch.Size([5*16=80, 1024, 6])
             
-            x_a_i = x_a_i.transpose(2, 1)
-            x_b_i = x_b_i.transpose(2, 1)
+            x_a_i = x_a_i.transpose(2, 1)# torch.Size([25, 6, 1024])
+            x_b_i = x_b_i.transpose(2, 1) # torch.Size([80, 6, 1024])
+
         elif self.vox:
             # embed()
             x_a_i = x_var[:, :self.n_support, :, :, :, :].contiguous().view(
@@ -65,10 +77,11 @@ class MAML(MetaTemplate):
                 self.n_way * self.n_support, *x.size()[2:])  # support data
             x_b_i = x_var[:, self.n_support:, :, :, :].contiguous().view(
                 self.n_way * self.n_query, *x.size()[2:])  # query data
+        # tensor([0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4])
         y_a_i = Variable(torch.from_numpy(
             np.repeat(range(self.n_way), self.n_support))).cuda()  # label for support data
 
-        # the first gradient calcuated in line 45 is based on original weight
+        # the first gradient calcuated in line 58 is based on original weight
         fast_parameters = list(self.parameters())
         for weight in self.parameters():
             weight.fast = None
@@ -84,14 +97,19 @@ class MAML(MetaTemplate):
             grad = torch.autograd.grad(
                 set_loss, fast_parameters, create_graph=True, allow_unused=True)
             # grad = torch.autograd.grad(
-            #     set_loss, fast_parameters, create_graph=True, allow_unused=True)
+            #     set_loss, fast_parameters, create_graph=True)
             if self.approx:
                 # do not calculate gradient of gradient if using first order approximation
+                # .detach()` 方法用於建立一個新的張量，其值與原始張量相同，但不再與計算圖相關聯。 
+                # 這意味著對新的張量進行操作不會影響計算圖中的梯度計算。 原始張量仍保留在計算圖中，以便進行後續的反向傳播。
+                # 將梯度從計算圖中分離，以便進一步的計算不會影響梯度。
                 # grad = [g.detach() for g in grad]
                 grad = [g.detach() if g is not None else None for g in grad]
 
             fast_parameters = []
+            # print(f"self.parameters()={self.parameters()}")
             for k, weight in enumerate(self.parameters()):
+                print(f"k={k} weight={weight}")
                 # if grad[k] == None:
                 #     embed()
                 # for usage of weight.fast, please see Linear_fw, Conv_fw in backbone.py
@@ -103,7 +121,7 @@ class MAML(MetaTemplate):
                     if grad[k] is not None:
                         weight.fast = weight.fast - self.train_lr * grad[k]
                     # weight.fast = weight.fast - self.train_lr * grad[k]
-                # gradients calculated in line 45 are based on newest fast weight, but the graph will retain the link to old weight.fasts
+                # gradients calculated in line 58 are based on newest fast weight, but the graph will retain the link to old weight.fasts
                 fast_parameters.append(weight.fast)
 
         scores = self.forward(x_b_i)
